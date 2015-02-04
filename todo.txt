@@ -40,6 +40,7 @@ DESIGN:
 -Design War's Sword ability
 -Design Pestilence's Staff ability
 -Design Famine's Swarm ability
+-Design collectables
 
 PROGRAMMING:
 -Implement parallax scrolling
