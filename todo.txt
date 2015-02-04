@@ -1,0 +1,116 @@
+﻿ART:
+-Create human ship background
+-Create enemy ship background
+-Create death's cave background
+-Create War's Warship background
+-Create Famine's Plains background
+-Create Pestilence's Lake background
+-Create lava texture
+-Create poison lake texture
+-Add detail to existing enemies
+-Add detail to horsemen
+-Animate horsemen
+-Create enemy death animations
+-Animate Death
+-Animate Pestilence
+-Animate War
+-Animate Famine
+-Draw human boss
+-Draw alien boss
+-Draw human ship tileset
+-Draw War's Warship tileset
+-Draw Famine's Lake tileset
+-Draw Pestilence's Plains tileset
+-Draw Death's Cave tileset
+-Draw confrontation tileset
+
+DESIGN:
+-Choose famine's first stage attacks
+-Choose famine's second stage attacks
+-Design Demon boss
+-Design Mech boss
+-Finish opening stage
+-Create Death's Cave
+-Create Pestilence's Lake
+-Create Famine's Plains
+-Create War's Warship
+-Create Confrontation With Humanity
+-Create Confrontation With Aliens
+-Design Death's Scythe ability
+-Design War's Sword ability
+-Design Pestilence's Staff ability
+-Design Famine's Swarm ability
+
+PROGRAMMING:
+-Implement parallax scrolling
+-Implement Famine boss fight
+-Implement pestilence boss fight
+-Implement War boss fight
+-Finish Death boss fight
+-Implement Alien confrontation
+-Implement Human confrontation
+-Create final human boss
+-Create final alien boss
+-Create menu and stage choosing
+-Implement saving
+-Implement dialog system
+-Implement death animations
+-Implement menu
+-Implement HUD
+-Implement boss rewards
+-Implement morality/faction system
+-Implement walls drawing with correct tiles from a tileset
+
+WRITING:
+-Write opening call to action
+-Write description for War
+-Write description for Pestilence
+-Write description for Famine
+-Write description for Death
+-Write end-game decision branch
+-Write tirade against humans
+-Write tirade against aliens
+
+UI/UX:
+-Design menu
+-Design HUD
+
+SFX:
+-Create shoot sound for all enemies/player/bosses
+-Create death sound for each enemy
+-Create death sound for player
+-Create respawn sound for player
+-Create level complete sound
+-Create boss battle sounds
+
+Music:
+-Create opening stage music
+-Create Death's stage music
+-Create War's stage music
+-Create Famine's stage music
+-Create Pestilence's stage music
+-Create human battle music
+-Create alien battle music
+
+COMPLETE:
+-Choose Pestilence's first stage attacks
+-Choose Pestilence's second stage attacks
+-Choose war's first stage attacks
+-Choose war's second stage attacks
+-Choose death's second stage attacks
+Add shield ability
+Add dash ability
+Implement turret enemy
+Implement powerups
+	x2 damage
+	Extra health
+-Implement robot enemy type
+-Create door opening animations
+-Implement door opening animations
+-Write opening
+-Create respawn animations
+-Implement respawn animations
+-Design Healing Light ability
+-Design Horn of Plenty ability
+-Design Harp of Peace ability
+-Design Staff of Life ability
