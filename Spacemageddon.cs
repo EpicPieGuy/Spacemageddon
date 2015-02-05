@@ -41,6 +41,7 @@ namespace Spacemageddon
         private KeyboardState previous;
         private Texture2D background, doorTex;
         private Door door;
+        private Tileset tileset;
         #endregion
         private static int delay = 0;
         public Main() : base()
@@ -59,10 +60,10 @@ namespace Spacemageddon
             shapeRenderer = content.Add<ShapeRenderer>(new ShapeRenderer(this.GraphicsDevice));
             this.player = new Player(TILE, TILE, null);
 		    this.player.Health = 5;
-		
-		    levels.Add("opening");
-		    levels.Add("level_1");
+		    levels.Add("deathStage");
+		    levels.Add("deathFight");
 		    levels.Add("boss_1");
+            levels.Add("boss_1");
 
             this.walls = new int[WIDTH / TILE][];
             for(int i = 0; i < walls.Length; i++)
@@ -82,8 +83,9 @@ namespace Spacemageddon
 		    camera.Y = (int)player.Y - S_HEIGHT / 2;
 		    camera.Width = S_WIDTH;
 		    camera.Height = S_HEIGHT;
-		    current = "opening";		
+		    current = "deathStage";		
 		    load(current);
+            tileset = new Tileset(walls, loadTexture("deathTileset.png"));
             
         }
 
@@ -93,6 +95,7 @@ namespace Spacemageddon
             content.Add(batch);
             background = loadTexture("humanShipBkg.png");
             doorTex = loadTexture("door.png");
+            
         }
 
         protected override void UnloadContent()
@@ -105,7 +108,7 @@ namespace Spacemageddon
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             base.Update(gameTime);
-            if (door.update(this.player))
+            if (door != null && door.update(this.player))
             {
                 next();
                 return;
@@ -119,14 +122,9 @@ namespace Spacemageddon
 
             //Update game state
             this.player.update(walls);
-		    if(!Entity.free(this.player.getBounds(), spikes))
-                this.player.damage(player.abilities[Player.Abilities.Life] ? 10 : 5);
-            if (this.player.Health <= 0)
-            {
-                this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
-                this.player.setPosition(Checkpoint.ActiveCheckpoint.X, HEIGHT - TILE);
-                this.player.respawning = true;
-            }
+            //Die on spikes or with 0 health
+            if (this.player.Health <= 0 || !Entity.free(this.player.getBounds(), spikes))
+                die();
 		    //Fires bullet if bullet key is pressed
 		    if(keys.IsKeyDown(Keys.F) && !previous.IsKeyDown(Keys.F))
 		    {
@@ -184,19 +182,21 @@ namespace Spacemageddon
                 Bullet bullet;
                 if ((bullet = enemy.checkBullets(this.bullets)) != null)
                 {
-                    enemy.Health -= 1;
+                    enemy.Health -= player.getDamage();
                     if (enemy.Health <= 0)
+                    {
                         enemies.Remove(enemy);
+                        Random rand = new Random();
+                        float chance = 0.05f;
+                        if (player.abilities[Player.Abilities.Plenty])
+                            chance = 0.2f;
+                        if (rand.NextDouble() <= chance)
+                            this.powerups.Add(new Powerup(enemy.X, enemy.Y, Powerup.Type.Health));
+                        else if (rand.NextDouble() <= chance)
+                            this.powerups.Add(new Powerup(enemy.X, enemy.Y, Powerup.Type.Damage));
+                        this.score += 1;
+                    }
                     this.bullets.Remove(bullet);
-                    Random rand = new Random();
-                    float chance = 0.05f;
-                    if (player.abilities[Player.Abilities.Plenty])
-                        chance = 0.2f;
-                    if (rand.NextDouble() <= chance)
-                        this.powerups.Add(new Powerup(enemy.X, enemy.Y, Powerup.Type.Health));
-                    else if (rand.NextDouble() <= chance)
-                        this.powerups.Add(new Powerup(enemy.X, enemy.Y, Powerup.Type.Damage));
-                    this.score += 1;
                 }
                 if (enemy.getBounds().Intersects(this.player.getBounds()))
                 {
@@ -338,21 +338,36 @@ namespace Spacemageddon
                         (int)(scale.X * background.Width), (int)(scale.Y * background.Height)), Color.White);
             //Set up camera
             camera.X = (int)player.X - S_WIDTH / 2 - TILE * 2;
-            camera.Y = 0;
+            camera.Y = HEIGHT - 480 - TILE;
             camera.Width = S_WIDTH + TILE * 4;
-            camera.Height = S_HEIGHT + TILE * 2;
+            camera.Height = S_HEIGHT + TILE * 4;
+            if (camera.X + camera.Width > WIDTH - TILE) camera.X = WIDTH - TILE - camera.Width;
 		    if(camera.X < 0) camera.X = 0;
 		    //if(camera.Y < 0) camera.Y = 0;
-		    if(camera.X + camera.Width > WIDTH - TILE) camera.X = WIDTH - TILE - camera.Width;
 		    //if(camera.Y + camera.Height > HEIGHT - TILE) camera.Y = HEIGHT - TILE - camera.Height;
 		    //Draw blocks
-            this.shapeRenderer.setScale(scale);
-		    this.shapeRenderer.setColor(0, 0, 0, 1);
-		    for(int i = 0; i < this.walls.Length; i++)
-			    for(int j = 0; j < this.walls[i].Length; j++)
-				    if(this.walls[i][j] == 1 && camera.Intersects(new Rectangle(i * TILE, j * TILE, TILE, TILE)))
-                        this.shapeRenderer.rect(batch, new Rectangle(i * TILE - (int)camera.X, HEIGHT - TILE * 2 - j * TILE - (int)camera.Y, TILE, TILE));
-            this.shapeRenderer.setColor(0, 0, 0, 1);
+            if (tileset != null)
+            {
+                TextureRegion[][] tiles = tileset.GetTextures();
+                for (int i = 0; i < tiles.Length; i++)
+                    for (int j = 0; j < tiles[i].Length; j++)
+                        if (tiles[i][j] != null)
+                        {
+                            Vector2 position = new Vector2(i * Main.TILE - camera.X, j * Main.TILE - camera.Y);
+                            position.Y = HEIGHT - TILE * 2 - position.Y;
+                            tiles[i][j].Draw(batch, position);
+                        }
+            }
+            else
+            {
+                this.shapeRenderer.setScale(scale);
+                this.shapeRenderer.setColor(0, 0, 0, 1);
+                for (int i = 0; i < this.walls.Length; i++)
+                    for (int j = 0; j < this.walls[i].Length; j++)
+                        if (this.walls[i][j] == 1 && camera.Intersects(new Rectangle(i * TILE - TILE, j * TILE - TILE, TILE * 2, TILE * 2)))
+                            this.shapeRenderer.rect(batch, new Rectangle(i * TILE - (int)camera.X, HEIGHT - TILE * 2 - j * TILE - (int)camera.Y, TILE, TILE));
+                this.shapeRenderer.setColor(0, 0, 0, 1);
+            }
             //Draw Breakable Blocks
             this.shapeRenderer.setColor(0.43f, 0.156f, 0, 1);
             for (int i = 0; i < this.walls.Length; i++)
@@ -360,7 +375,7 @@ namespace Spacemageddon
                     if (this.walls[i][j] == 2 && camera.Intersects(new Rectangle(i * TILE, j * TILE, TILE, TILE)))
                         this.shapeRenderer.rect(batch, new Rectangle(i * TILE - (int)camera.X, HEIGHT - TILE * 2 - j * TILE - (int)camera.Y, TILE, TILE));
             //Draw door
-            if (camera.Intersects(door.getBounds()))
+            if (door != null && camera.Intersects(door.getBounds()))
             {
                 Vector2 pos = door.getPosition() - new Vector2(camera.X, camera.Y);
                 pos.Y = HEIGHT - TILE * 2 - pos.Y;
@@ -539,6 +554,13 @@ namespace Spacemageddon
 
         }
 
+        private void die()
+        {
+            this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
+            this.player.setPosition(Checkpoint.ActiveCheckpoint.X, HEIGHT - TILE);
+            this.player.respawning = true;
+        }
+
         private void loadOptions(String xmlLocation)
         {
             XmlReader xml = XmlReader.Create(xmlLocation);
@@ -562,6 +584,90 @@ namespace Spacemageddon
             S_WIDTH = graphics.PreferredBackBufferWidth;
             S_HEIGHT = graphics.PreferredBackBufferHeight;
             graphics.ApplyChanges();
+        }
+    }
+
+    public class Tileset
+    {
+        private TextureRegion[][] tiles;
+        private Dictionary<Links, TextureRegion> textures;
+
+        public Tileset(int[][] walls, Texture2D sheet)
+        {
+            TextureRegion sheetRegion = new TextureRegion(sheet);
+            TextureRegion[][] tiles = sheetRegion.Split(32, 32);
+            this.textures = new Dictionary<Links, TextureRegion>();
+            textures.Add(new Links(false, true, false, true), tiles[0][0]);
+            textures.Add(new Links(false, true, true, true), tiles[1][0]);
+            textures.Add(new Links(false, true, true, false), tiles[2][0]);
+            textures.Add(new Links(true, true, false, true), tiles[0][1]);
+            textures.Add(new Links(true, true, true, true), tiles[1][1]);
+            textures.Add(new Links(true, true, true, false), tiles[2][1]);
+            textures.Add(new Links(true, false, false, true), tiles[0][2]);
+            textures.Add(new Links(true, false, true, true), tiles[1][2]);
+            textures.Add(new Links(true, false, true, false), tiles[2][2]);
+            textures.Add(new Links(false, true, false, false), tiles[3][0]);
+            textures.Add(new Links(true, false, false, false), tiles[3][1]);
+            textures.Add(new Links(true, true, false, false), tiles[3][2]);
+            textures.Add(new Links(false, false, false, true), tiles[0][3]);
+            textures.Add(new Links(false, false, true, false), tiles[1][3]);
+            textures.Add(new Links(false, false, true, true), tiles[2][3]);
+            textures.Add(new Links(false, false, false, false), tiles[3][3]);
+            this.tiles = new TextureRegion[walls.Length][];
+            for (int i = 0; i < walls.Length; i++)
+            {
+                this.tiles[i] = new TextureRegion[walls[i].Length];
+                for (int j = 0; j < walls[i].Length; j++)
+                {
+                    if (walls[i][j] == 1)
+                    {
+                        bool up, down, left, right;
+                        up = j < walls[i].Length - 1 && walls[i][j + 1] == 1; 
+                        down = j > 0 && walls[i][j - 1] == 1;
+                        left = i > 0 && walls[i - 1][j] == 1;
+                        right = i < walls.Length - 1 && walls[i + 1][j] == 1;
+                        this.tiles[i][j] = textures[new Links(up, down, left, right)];
+                    }
+                }
+            }
+        }
+
+        public TextureRegion[][] GetTextures()
+        {
+            return tiles;
+        }
+    }
+
+    public class Links
+    {
+        public bool up, down, left, right;
+
+        public Links(bool up, bool down, bool left, bool right)
+        {
+            this.up = up;
+            this.left = left;
+            this.right = right;
+            this.down = down;
+        }
+
+        public override string ToString()
+        {
+            return "^" + up + "\nv" + down + "\n<" + left + "\n>" + right;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() == this.GetType())
+            {
+                Links other = (Links)obj;
+                return up == other.up && down == other.down && left == other.left && right == other.right;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (up ? 1 : 0) + (down ? 10 : 0) + (left ? 100 : 0) + (right ? 1000 : 0);
         }
     }
 }

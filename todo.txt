@@ -21,7 +21,6 @@
 -Draw War's Warship tileset
 -Draw Famine's Lake tileset
 -Draw Pestilence's Plains tileset
--Draw Death's Cave tileset
 -Draw confrontation tileset
 
 DESIGN:
@@ -30,7 +29,6 @@ DESIGN:
 -Design Demon boss
 -Design Mech boss
 -Finish opening stage
--Create Death's Cave
 -Create Pestilence's Lake
 -Create Famine's Plains
 -Create War's Warship
@@ -60,7 +58,7 @@ PROGRAMMING:
 -Implement HUD
 -Implement boss rewards
 -Implement morality/faction system
--Implement walls drawing with correct tiles from a tileset
+-Limit number of lives
 
 WRITING:
 -Write opening call to action
@@ -115,3 +113,6 @@ Implement powerups
 -Design Horn of Plenty ability
 -Design Harp of Peace ability
 -Design Staff of Life ability
+-Create Death's Cave
+-Implement walls drawing with correct tiles from a tileset
+-Draw Death's Cave tileset

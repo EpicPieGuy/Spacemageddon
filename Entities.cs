@@ -412,7 +412,30 @@ namespace Entities
 				    break;
 		    }
             frame = 0;
-            this.Health = health;
+            switch (type)
+            {
+                case Type.Patrol:
+                    this.Health = 3;
+                    break;
+                case Type.PatrolFiring:
+                    this.Health = 4;
+                    break;
+                case Type.Fly:
+                    this.Health = 3;
+                    break;
+                case Type.FlyFiring:
+                    Health = 4;
+                    break;
+                case Type.Ghost:
+                    Health = 2;
+                    break;
+                case Type.Turret:
+                    Health = 2;
+                    break;
+                case Type.Robot:
+                    Health = 5;
+                    break;
+            }
 	    }
 
         public int Facing { get { return facing; } }
