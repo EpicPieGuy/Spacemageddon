@@ -1,5 +1,4 @@
 ﻿ART:
--Create lava/poison lake textures
 -Add detail to existing enemies
 -Add detail to horsemen
 -Animate horsemen
@@ -8,9 +7,9 @@
 -Animate Pestilence
 -Animate War
 -Animate Famine
--Draw human boss
--Draw alien boss
+-Draw hidden boss
 -Draw confrontation tileset
+-Draw walking enemies
 
 DESIGN:
 -Choose famine's first stage attacks
@@ -18,33 +17,20 @@ DESIGN:
 -Design Demon boss
 -Design Mech boss
 -Finish opening stage
--Create Confrontation With Humanity
--Create Confrontation With Aliens
+-Create hidden boss
 -Design Famine's Swarm ability
 -Design collectables
 
 PROGRAMMING:
--Implement parallax scrolling
 -Implement Famine boss fight
 -Implement pestilence boss fight
 -Implement War boss fight
 -Implement Death boss
--Implement Alien confrontation
--Implement Human confrontation
+-Implement hidden boss
 -Create menu
 -Implement death animations
 -Implement HUD
 -Limit number of lives
-
-WRITING:
--Write opening call to action
--Write description for War
--Write description for Pestilence
--Write description for Famine
--Write description for Death
--Write end-game decision branch
--Write tirade against humans
--Write tirade against aliens
 
 UI/UX:
 -Design menu
@@ -109,3 +95,5 @@ Implement powerups
 -Create Pestilence's Lake
 -Implement boss rewards
 -Implement morality/faction system
+-Implement parallax scrolling
+-Create lava/poison lake textures

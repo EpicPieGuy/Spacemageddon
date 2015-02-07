@@ -336,11 +336,11 @@ namespace Spacemageddon
         {
             GraphicsDevice.Clear(new Color(128, 128, 128, 255));
             this.batch.Begin();
-            //TODO: Make background scroll a bit
+            int offset = (int)(camera.X / 4) % background.Width;
             //Draw background
-            for (int i = 0; i < S_WIDTH * 3; i += (int)(background.Width * scale.X))
+            for (int i = -offset; i < S_WIDTH * 3; i += (int)(background.Width * scale.X))
                 for (int j = 0; j < S_HEIGHT  * 3; j += (int)(background.Height * scale.Y))
-                    batch.Draw(background, new Rectangle((int)(i), (int)(j), 
+                    batch.Draw(background, new Rectangle((int)(i) - offset, (int)(j), 
                         (int)(scale.X * background.Width), (int)(scale.Y * background.Height)), Color.White);
             //Set up camera
             camera.X = (int)player.X - S_WIDTH / 2 - TILE * 2;
