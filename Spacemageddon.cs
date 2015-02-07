@@ -30,7 +30,7 @@ namespace Spacemageddon
 	    private List<Powerup> powerups;
         private List<Checkpoint> checkpoints;
 	    private int[][] walls, spikes;
-        private int score;
+        private int score, lavaFrame;
 	    private Rectangle camera;
 	    private String current;
 	    private Boss boss;
@@ -42,6 +42,7 @@ namespace Spacemageddon
         private Texture2D background, doorTex;
         private Door door;
         private Tileset tileset;
+        private TextureRegion[][] lava;
         #endregion
         private static int delay = 0;
         public Main() : base()
@@ -59,11 +60,14 @@ namespace Spacemageddon
             shapeRenderer = content.Add<ShapeRenderer>(new ShapeRenderer(this.GraphicsDevice));
             this.player = new Player(TILE, TILE, null);
 		    this.player.Health = 5;
+            levels.Add("pestilenceStage");
+            levels.Add("pestilenceFight");
+            levels.Add("warStage");
+            levels.Add("warFight");
             levels.Add("famineStage");
+            levels.Add("famineFight");
 		    levels.Add("deathStage");
 		    levels.Add("deathFight");
-		    levels.Add("boss_1");
-            levels.Add("boss_1");
 
             this.walls = new int[WIDTH / TILE][];
             for(int i = 0; i < walls.Length; i++)
@@ -83,7 +87,7 @@ namespace Spacemageddon
 		    camera.Y = (int)player.Y - S_HEIGHT / 2;
 		    camera.Width = S_WIDTH;
 		    camera.Height = S_HEIGHT;
-		    current = "famineStage";		
+            current = "pestilenceStage";		
 		    load(current);        
         }
 
@@ -93,7 +97,8 @@ namespace Spacemageddon
             content.Add(batch);
             background = loadTexture("humanShipBkg.png");
             doorTex = loadTexture("door.png");
-            
+            TextureRegion lavaSheet = new TextureRegion(loadTexture("lava.png"));
+            lava = lavaSheet.Split(32, 32);
         }
 
         protected override void UnloadContent()
@@ -344,8 +349,6 @@ namespace Spacemageddon
             camera.Height = S_HEIGHT + TILE * 4;
             if (camera.X + camera.Width > WIDTH - TILE) camera.X = WIDTH - TILE - camera.Width;
 		    if(camera.X < 0) camera.X = 0;
-		    //if(camera.Y < 0) camera.Y = 0;
-		    //if(camera.Y + camera.Height > HEIGHT - TILE) camera.Y = HEIGHT - TILE - camera.Height;
 		    //Draw blocks
             if (tileset != null)
             {
@@ -386,8 +389,11 @@ namespace Spacemageddon
             this.shapeRenderer.setColor(1, 0, 0, 1);
 		    for(int i = 0; i < this.spikes.Length; i++)
 			    for(int j = 0; j < this.spikes[i].Length; j++)
-				    if(this.spikes[i][j] == 1 && camera.Intersects(new Rectangle(i * TILE, j * TILE, TILE, TILE)))
-                        this.shapeRenderer.rect(batch, new Rectangle(i * TILE - (int)camera.X, HEIGHT - TILE * 2 - j * TILE - (int)camera.Y, TILE, TILE));
+                    if (this.spikes[i][j] == 1 && camera.Intersects(new Rectangle(i * TILE, j * TILE, TILE, TILE)))
+                    {
+                        lavaFrame = (lavaFrame + 1) % 80;
+                        lava[lavaFrame / 20][0].Draw(batch, new Vector2(i * TILE - (int)camera.X, HEIGHT - TILE * 2 - j * TILE - (int)camera.Y), scale);
+                    }
 		    //Draw bullets
 		    this.shapeRenderer.setColor(0, 1, 0, 1);
 		    foreach(Bullet bullet in this.bullets)

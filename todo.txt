@@ -10,7 +10,6 @@
 -Animate Famine
 -Draw human boss
 -Draw alien boss
--Draw human ship tileset
 -Draw confrontation tileset
 
 DESIGN:
@@ -19,7 +18,6 @@ DESIGN:
 -Design Demon boss
 -Design Mech boss
 -Finish opening stage
--Create Pestilence's Lake
 -Create Confrontation With Humanity
 -Create Confrontation With Aliens
 -Design Famine's Swarm ability
@@ -30,18 +28,12 @@ PROGRAMMING:
 -Implement Famine boss fight
 -Implement pestilence boss fight
 -Implement War boss fight
--Finish Death boss fight
+-Implement Death boss
 -Implement Alien confrontation
 -Implement Human confrontation
--Create final human boss
--Create final alien boss
--Create menu and stage choosing
--Implement saving
+-Create menu
 -Implement death animations
--Implement menu
 -Implement HUD
--Implement boss rewards
--Implement morality/faction system
 -Limit number of lives
 
 WRITING:
@@ -112,3 +104,8 @@ Implement powerups
 -Create Famine's Plains background
 -Draw Pestilence's Lake tileset
 -Create Pestilence's Lake background
+-Implement saving
+-Draw human ship tileset
+-Create Pestilence's Lake
+-Implement boss rewards
+-Implement morality/faction system

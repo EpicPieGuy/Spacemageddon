@@ -224,6 +224,13 @@ namespace Entities
             abilities[Abilities.Swarm] = false;
             abilities[Abilities.Staff] = false;
 	    }
+
+        public int alignment()
+        {
+            int align = (abilities[Abilities.Harp] ? 1 : 0) + (abilities[Abilities.Light] ? 1 : 0) + (abilities[Abilities.Plenty] ? 1 : 0) + (abilities[Abilities.Life] ? 1 : 0);
+            align -= (abilities[Abilities.Scythe] ? 1 : 0) + (abilities[Abilities.Sword] ? 1 : 0) + (abilities[Abilities.Swarm] ? 1 : 0) + (abilities[Abilities.Staff] ? 1 : 0);
+            return align;
+        }
 	
 	    public void update(int[][] walls)
 	    {
