@@ -56,10 +56,10 @@ namespace Spacemageddon
         protected override void Initialize()
         {
             base.Initialize();
-
             shapeRenderer = content.Add<ShapeRenderer>(new ShapeRenderer(this.GraphicsDevice));
             this.player = new Player(TILE, TILE, null);
 		    this.player.Health = 5;
+            levels.Add("famineStage");
 		    levels.Add("deathStage");
 		    levels.Add("deathFight");
 		    levels.Add("boss_1");
@@ -83,10 +83,8 @@ namespace Spacemageddon
 		    camera.Y = (int)player.Y - S_HEIGHT / 2;
 		    camera.Width = S_WIDTH;
 		    camera.Height = S_HEIGHT;
-		    current = "deathStage";		
-		    load(current);
-            tileset = new Tileset(walls, loadTexture("deathTileset.png"));
-            
+		    current = "famineStage";		
+		    load(current);        
         }
 
         protected override void LoadContent()
@@ -183,6 +181,8 @@ namespace Spacemageddon
                 if ((bullet = enemy.checkBullets(this.bullets)) != null)
                 {
                     enemy.Health -= player.getDamage();
+                    if (player.abilities[Player.Abilities.Staff])
+                        enemy.poisoned = true;
                     if (enemy.Health <= 0)
                     {
                         enemies.Remove(enemy);
@@ -196,7 +196,8 @@ namespace Spacemageddon
                             this.powerups.Add(new Powerup(enemy.X, enemy.Y, Powerup.Type.Damage));
                         this.score += 1;
                     }
-                    this.bullets.Remove(bullet);
+                    if(!player.abilities[Player.Abilities.Scythe])
+                        this.bullets.Remove(bullet);
                 }
                 if (enemy.getBounds().Intersects(this.player.getBounds()))
                 {
@@ -475,6 +476,7 @@ namespace Spacemageddon
 		    this.enemies = new List<Enemy>();
 		    this.bullets = new List<Bullet>();
 		    this.enemyBullets = new List<Bullet>();
+            this.checkpoints = new List<Checkpoint>();
 		    using(StreamReader stream = File.OpenText(levelname))
             {
 			    WIDTH = Convert.ToInt16(stream.ReadLine());
@@ -539,6 +541,29 @@ namespace Spacemageddon
                                 break;
 					    }
 				    }
+                switch (levelname)
+                {
+                    case "deathStage":
+                    case "deathFight":
+                        tileset = new Tileset(walls, loadTexture("deathTileset.png"));
+                        background = loadTexture("deathBkg.png");
+                        break;
+                    case "warStage":
+                    case "warFight":
+                        tileset = new Tileset(walls, loadTexture("warTileset.png"));
+                        background = loadTexture("warBkg.png");
+                        break;
+                    case "famineStage":
+                    case "famineFight":
+                        tileset = new Tileset(walls, loadTexture("famineTileset.png"));
+                        background = loadTexture("famineBkg.png");
+                        break;
+                    case "pestilenceStage":
+                    case "pestilenceFight":
+                        tileset = new Tileset(walls, loadTexture("pestilenceTileset.png"));
+                        background = loadTexture("pestilenceBkg.png");
+                        break;
+                }
             }
 	    }
 
@@ -551,7 +576,136 @@ namespace Spacemageddon
 
         private void saveState(String location)
         {
+            using (BinaryWriter writer = new BinaryWriter(System.IO.File.OpenWrite(location)))
+            {
+                bool[] abilities = new bool[8];
+                abilities[0] = player.abilities[Player.Abilities.Harp];
+                abilities[1] = player.abilities[Player.Abilities.Life];
+                abilities[2] = player.abilities[Player.Abilities.Light];
+                abilities[3] = player.abilities[Player.Abilities.Plenty];
+                abilities[4] = player.abilities[Player.Abilities.Scythe];
+                abilities[5] = player.abilities[Player.Abilities.Staff];
+                abilities[6] = player.abilities[Player.Abilities.Swarm];
+                abilities[7] = player.abilities[Player.Abilities.Sword];
+                writer.Write(bitsToByte(abilities));
+                byte level;
+                switch (current)
+                {
+                    case "deathStage":
+                        level = 0;
+                        break;
+                    case "deathFight":
+                        level = 1;
+                        break;
+                    case "famineStage":
+                        level = 2;
+                        break;
+                    case "famineFight":
+                        level = 3;
+                        break;
+                    case "warStage":
+                        level = 4;
+                        break;
+                    case "warFight":
+                        level = 5;
+                        break;
+                    case "pestilenceStage":
+                        level = 6;
+                        break;
+                    case "pestilenceFight":
+                        level = 7;
+                        break;
+                    case "alienEnding":
+                        level = 8;
+                        break;
+                    case "humanEnding":
+                        level = 9;
+                        break;
+                    default:
+                        level = 255;
+                        break;
+                }
+                writer.Write(level);
+                writer.Write((byte)checkpoints.IndexOf(Checkpoint.ActiveCheckpoint));
+            }
+        }
 
+        private void loadState(String location)
+        {
+            using (BinaryReader reader = new BinaryReader(System.IO.File.OpenRead(location)))
+            {
+                bool[] abilities = byteToBits(reader.ReadByte());
+                player.abilities[Player.Abilities.Harp] = abilities[0];
+                player.abilities[Player.Abilities.Life] = abilities[1];
+                player.abilities[Player.Abilities.Light] = abilities[2];
+                player.abilities[Player.Abilities.Plenty] = abilities[3];
+                player.abilities[Player.Abilities.Scythe] = abilities[4];
+                player.abilities[Player.Abilities.Staff] = abilities[5];
+                player.abilities[Player.Abilities.Swarm] = abilities[6];
+                player.abilities[Player.Abilities.Sword] = abilities[7];
+                byte level = reader.ReadByte();
+                switch (level)
+                {
+                    case 0:
+                        load("deathStage");
+                        break;
+                    case 1:
+                        load("deathFight");
+                        break;
+                    case 2:
+                        load("famineStage");
+                        break;
+                    case 3:
+                        load("famineFight");
+                        break;
+                    case 4:
+                        load("warStage");
+                        break;
+                    case 5:
+                        load("warFight");
+                        break;
+                    case 6:
+                        load("pestilenceStage");
+                        break;
+                    case 7:
+                        load("pestilenceFight");
+                        break;
+                    case 8:
+                        load("alienEnding");
+                        break;
+                    case 9:
+                        load("humanEnding");
+                        break;
+                    default:
+                        load("opening");
+                        break;
+                }
+                byte checkpoint = reader.ReadByte();
+                checkpoints[checkpoint].Activate();
+            }
+        }
+
+        private byte bitsToByte(bool[] bits)
+        {
+            if (bits.Length != 8)
+                throw new System.ArgumentException();
+            byte b = 0;
+            for (int i = bits.Length - 1; i >= 0; i--)
+            {
+                b += bits[i] ? (byte)Math.Pow(2, bits.Length - 1 - i) : (byte)0;
+            }
+            return b;
+        }
+
+        private bool[] byteToBits(byte b)
+        {
+            bool[] bits = new bool[8];
+            for (int i = bits.Length - 1; i >= 0; i--)
+            {
+                if (bits[i] = b - Math.Pow(2, i) > 0)
+                    b -= (byte)Math.Pow(2, i);
+            }
+            return bits;
         }
 
         private void die()

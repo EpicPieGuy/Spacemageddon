@@ -298,7 +298,7 @@ namespace Entities
 	
 	    public int getDamage()
 	    {
-		    return this.amtDamage;
+		    return this.amtDamage * (this.abilities[Abilities.Sword] ? 2 : 1);
 	    }
 	
 	    public void giveDamageBuff()
@@ -372,6 +372,7 @@ namespace Entities
         private int delay, facing, yHeight, frame;
         private static Dictionary<Type, TextureRegion> textures;
         private static Dictionary<Type, int> frames;
+        public bool poisoned;
 	    static Enemy()
 	    {
 			textures = new Dictionary<Type, TextureRegion>();
@@ -436,12 +437,20 @@ namespace Entities
                     Health = 5;
                     break;
             }
+            poisoned = false;
 	    }
 
         public int Facing { get { return facing; } }
 	
 	    public void update(int[][] walls)
 	    {
+            Random rand = new Random();
+            if (poisoned && rand.NextDouble() <= 0.1)
+            {
+                Health--;
+                if (rand.NextDouble() <= 0.2)
+                    poisoned = false;
+            }
 		    if(this.type == Type.Ghost)
 			    return;
 		    Rectangle bounds = this.getBounds();

@@ -1,12 +1,5 @@
 ﻿ART:
--Create human ship background
--Create enemy ship background
--Create death's cave background
--Create War's Warship background
--Create Famine's Plains background
--Create Pestilence's Lake background
--Create lava texture
--Create poison lake texture
+-Create lava/poison lake textures
 -Add detail to existing enemies
 -Add detail to horsemen
 -Animate horsemen
@@ -18,9 +11,6 @@
 -Draw human boss
 -Draw alien boss
 -Draw human ship tileset
--Draw War's Warship tileset
--Draw Famine's Lake tileset
--Draw Pestilence's Plains tileset
 -Draw confrontation tileset
 
 DESIGN:
@@ -30,13 +20,8 @@ DESIGN:
 -Design Mech boss
 -Finish opening stage
 -Create Pestilence's Lake
--Create Famine's Plains
--Create War's Warship
 -Create Confrontation With Humanity
 -Create Confrontation With Aliens
--Design Death's Scythe ability
--Design War's Sword ability
--Design Pestilence's Staff ability
 -Design Famine's Swarm ability
 -Design collectables
 
@@ -52,7 +37,6 @@ PROGRAMMING:
 -Create final alien boss
 -Create menu and stage choosing
 -Implement saving
--Implement dialog system
 -Implement death animations
 -Implement menu
 -Implement HUD
@@ -116,3 +100,15 @@ Implement powerups
 -Create Death's Cave
 -Implement walls drawing with correct tiles from a tileset
 -Draw Death's Cave tileset
+-Draw War's Warship tileset
+-Create death's cave background
+-Create War's Warship background
+-Create War's Warship
+-Design Death's Scythe ability
+-Design War's Sword ability
+-Design Pestilence's Staff ability
+-Draw Famine's Plains tileset
+-Create Famine's Plains
+-Create Famine's Plains background
+-Draw Pestilence's Lake tileset
+-Create Pestilence's Lake background
