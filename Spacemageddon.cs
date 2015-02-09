@@ -1,5 +1,6 @@
 ﻿#region Using Statements
 using System;
+using System.Media;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -9,6 +10,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.GamerServices;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 using Entities;
 using LibGDX_Port;
 #endregion
@@ -38,11 +41,13 @@ namespace Spacemageddon
         public static int WIDTH = 640, HEIGHT = 480, TILE = 32, S_WIDTH = 640, S_HEIGHT = 480;
         public static Vector2 scale;
         private static Content content;
+        private static ContentManager contentManager;
         private KeyboardState previous;
         private Texture2D background, doorTex;
         private Door door;
         private Tileset tileset;
-        private TextureRegion[][] lava;
+        private TextureRegion[][] lava, abilityTex;
+        private SoundEffectInstance backgroundMusic, respawn;
         #endregion
         private static int delay = 0;
         public Main() : base()
@@ -51,6 +56,7 @@ namespace Spacemageddon
             Content.RootDirectory = "Content";
             instance = this;
             content = new Content();
+            contentManager = this.Content;
             this.loadOptions("options.xml");
         }
 
@@ -99,6 +105,8 @@ namespace Spacemageddon
             doorTex = loadTexture("door.png");
             TextureRegion lavaSheet = new TextureRegion(loadTexture("lava.png"));
             lava = lavaSheet.Split(32, 32);
+            abilityTex = new TextureRegion(loadTexture("powerups.png")).Split(32, 32);
+            respawn = loadSound("RespawnSound.wav");
         }
 
         protected override void UnloadContent()
@@ -133,6 +141,13 @@ namespace Spacemageddon
 		    {
                 Bullet bullet = new Bullet(player.X + 10 * player.getFacing(), player.Y + TILE / 2, 10 * player.getFacing(), 0, null);
 			    this.bullets.Add(bullet);
+                if (player.abilities[Player.Abilities.Swarm])
+                {
+                    bullet = new Bullet(player.X + 10 * player.getFacing(), player.Y + TILE / 2, 10 * player.getFacing(), 1, null);
+                    this.bullets.Add(bullet);
+                    bullet = new Bullet(player.X + 10 * player.getFacing(), player.Y + TILE / 2, 10 * player.getFacing(), -1, null);
+                    this.bullets.Add(bullet);
+                }
 		    }
             if (keys.IsKeyDown(Keys.D) && !previous.IsKeyDown(Keys.D))
 		    {
@@ -433,9 +448,11 @@ namespace Spacemageddon
                 boss.getTexture().Draw(batch, new Vector2(boss.X, HEIGHT - TILE * 3 - boss.Y), scale);
 		
 		    //Draw GUI
-		    shapeRenderer.setColor(0, 1, 0, 0.5f);
-		    Vector2 health = new Vector2(TILE * 2, HEIGHT - TILE * 1.8f);
-		    Vector2 filledBar = new Vector2(player.Health * TILE, TILE * 0.5f);
+            Vector2 health = new Vector2(TILE * 2, HEIGHT - TILE * 1.8f);
+            Vector2 filledBar = new Vector2(player.Health * TILE, TILE * 0.5f);
+            shapeRenderer.setColor(0, 0, 0, 1f);
+            this.shapeRenderer.rect(batch, new Rectangle((int)health.X - 1, (int)health.Y - 1, (int)filledBar.X + 2, (int)filledBar.Y + 2));
+		    shapeRenderer.setColor(0, 1, 0, 1f);
             this.shapeRenderer.rect(batch, new Rectangle((int)health.X, (int)health.Y, (int)filledBar.X, (int)filledBar.Y));
 		    if(this.boss != null)
 		    {
@@ -444,6 +461,22 @@ namespace Spacemageddon
 			    filledBar = new Vector2(boss.Health * (TILE * 2), TILE);
 			    this.shapeRenderer.rect(batch, new Rectangle((int)health.X, HEIGHT - (int)health.Y - TILE / 2, (int)filledBar.X, (int)filledBar.Y));
 		    }
+            if (player.abilities[Player.Abilities.Scythe])
+                abilityTex[0][0].Draw(batch, new Vector2(S_WIDTH - TILE * 4, S_HEIGHT - TILE));
+            if(player.abilities[Player.Abilities.Sword])
+                abilityTex[1][0].Draw(batch, new Vector2(S_WIDTH - TILE * 3, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Staff])
+                abilityTex[2][0].Draw(batch, new Vector2(S_WIDTH - TILE * 2, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Swarm])
+                abilityTex[3][0].Draw(batch, new Vector2(S_WIDTH - TILE * 1, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Harp])
+                abilityTex[4][0].Draw(batch, new Vector2(S_WIDTH - TILE * 4, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Light])
+                abilityTex[5][0].Draw(batch, new Vector2(S_WIDTH - TILE * 3, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Plenty])
+                abilityTex[6][0].Draw(batch, new Vector2(S_WIDTH - TILE * 2, S_HEIGHT - TILE));
+            if (player.abilities[Player.Abilities.Life])
+                abilityTex[7][0].Draw(batch, new Vector2(S_WIDTH - TILE * 1, S_HEIGHT - TILE));
             this.batch.End();
 
             base.Draw(gameTime);
@@ -456,11 +489,19 @@ namespace Spacemageddon
 
         public static Texture2D loadTexture(string name)
         {
-            System.IO.Stream stream = System.IO.File.Open(name, System.IO.FileMode.Open);
-            Texture2D texture = Texture2D.FromStream(Main.instance.GraphicsDevice, stream);
-            stream.Close();
+            //System.IO.Stream stream = System.IO.File.Open(name, System.IO.FileMode.Open);
+            Texture2D texture = contentManager.Load<Texture2D>(name.Substring(0, name.Length - 4));//Texture2D.FromStream(Main.instance.GraphicsDevice, stream);
+            //stream.Close();
             content.Add<Texture2D>(texture);
             return texture;
+        }
+
+        public static SoundEffectInstance loadSound(string name)
+        {
+            SoundEffect sound = contentManager.Load<SoundEffect>(name.Substring(0, name.Length - 4));
+            content.Add<SoundEffect>(sound);
+            SoundEffectInstance snd = content.Add<SoundEffectInstance>(sound.CreateInstance());
+            return snd;
         }
 
         public static Rectangle Scale(Rectangle original, Vector2 scale)
@@ -553,23 +594,29 @@ namespace Spacemageddon
                     case "deathFight":
                         tileset = new Tileset(walls, loadTexture("deathTileset.png"));
                         background = loadTexture("deathBkg.png");
+                        backgroundMusic = loadSound("DeathsCave.wav");
                         break;
                     case "warStage":
                     case "warFight":
                         tileset = new Tileset(walls, loadTexture("warTileset.png"));
                         background = loadTexture("warBkg.png");
+                        backgroundMusic = loadSound("WarsWarship.wav");
                         break;
                     case "famineStage":
                     case "famineFight":
                         tileset = new Tileset(walls, loadTexture("famineTileset.png"));
                         background = loadTexture("famineBkg.png");
+                        backgroundMusic = loadSound("FaminesPlains.wav");
                         break;
                     case "pestilenceStage":
                     case "pestilenceFight":
                         tileset = new Tileset(walls, loadTexture("pestilenceTileset.png"));
                         background = loadTexture("pestilenceBkg.png");
+                        backgroundMusic = loadSound("PestilencesLake.wav");
                         break;
                 }
+                backgroundMusic.IsLooped = true;
+                backgroundMusic.Play();
             }
 	    }
 
@@ -719,6 +766,7 @@ namespace Spacemageddon
             this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
             this.player.setPosition(Checkpoint.ActiveCheckpoint.X, HEIGHT - TILE);
             this.player.respawning = true;
+            respawn.Play();
         }
 
         private void loadOptions(String xmlLocation)
@@ -828,6 +876,39 @@ namespace Spacemageddon
         public override int GetHashCode()
         {
             return (up ? 1 : 0) + (down ? 10 : 0) + (left ? 100 : 0) + (right ? 1000 : 0);
+        }
+    }
+
+    public class Sound : IDisposable
+    {
+        private SoundPlayer source;
+        private Stream stream;
+        public Sound(Stream s)
+        {
+            this.stream = s;
+            source = new SoundPlayer(stream);
+            source.LoadAsync();
+        }
+
+        public void Play()
+        {
+            source.Play();
+        }
+
+        public void PlayLooping()
+        {
+            source.PlayLooping();
+        }
+
+        public void Stop()
+        {
+            source.Stop();
+        }
+
+        public void Dispose()
+        {
+            source.Dispose();
+            stream.Close();
         }
     }
 }

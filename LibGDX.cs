@@ -16,6 +16,7 @@ namespace LibGDX_Port
     {
         private Texture2D source;
         private Rectangle region;
+        private Vector2 stretch;
         private bool flipX, flipY;
         public TextureRegion(Rectangle region, Texture2D source)
         {

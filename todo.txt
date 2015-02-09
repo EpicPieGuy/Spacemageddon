@@ -18,7 +18,6 @@ DESIGN:
 -Design Mech boss
 -Finish opening stage
 -Create hidden boss
--Design Famine's Swarm ability
 -Design collectables
 
 PROGRAMMING:
@@ -28,13 +27,16 @@ PROGRAMMING:
 -Implement Death boss
 -Implement hidden boss
 -Create menu
+-Create options menu
+	-Create sound sliders
+	-Create vsync toggle
+	-Maybe resolution?
+	-Difficulty
 -Implement death animations
--Implement HUD
 -Limit number of lives
 
 UI/UX:
 -Design menu
--Design HUD
 
 SFX:
 -Create shoot sound for all enemies/player/bosses
@@ -44,14 +46,7 @@ SFX:
 -Create level complete sound
 -Create boss battle sounds
 
-Music:
--Create opening stage music
--Create Death's stage music
--Create War's stage music
--Create Famine's stage music
--Create Pestilence's stage music
--Create human battle music
--Create alien battle music
+Music: COMPLETE WREKT GG SCRUBS
 
 COMPLETE:
 -Choose Pestilence's first stage attacks
@@ -97,3 +92,13 @@ Implement powerups
 -Implement morality/faction system
 -Implement parallax scrolling
 -Create lava/poison lake textures
+-Design Famine's Swarm ability
+-Design HUD
+-Implement HUD
+-Create opening stage music
+-Create Death's stage music
+-Create War's stage music
+-Create Famine's stage music
+-Create Pestilence's stage music
+-Create human battle music
+-Create alien battle music
