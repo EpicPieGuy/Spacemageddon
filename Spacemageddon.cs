@@ -47,7 +47,9 @@ namespace Spacemageddon
         private Door door;
         private Tileset tileset;
         private TextureRegion[][] lava, abilityTex;
-        private SoundEffectInstance backgroundMusic, respawn;
+        private SoundEffectInstance backgroundMusic, respawn, menuMusic, playerShoot;
+        private Menu mainMenu;
+        private Upgrade good, bad;
         #endregion
         private static int delay = 0;
         public Main() : base()
@@ -58,6 +60,7 @@ namespace Spacemageddon
             content = new Content();
             contentManager = this.Content;
             this.loadOptions("options.xml");
+            mainMenu = new Menu();
         }
 
         protected override void Initialize()
@@ -66,14 +69,14 @@ namespace Spacemageddon
             shapeRenderer = content.Add<ShapeRenderer>(new ShapeRenderer(this.GraphicsDevice));
             this.player = new Player(TILE, TILE, null);
 		    this.player.Health = 5;
-            levels.Add("pestilenceStage");
-            levels.Add("pestilenceFight");
-            levels.Add("warStage");
-            levels.Add("warFight");
             levels.Add("famineStage");
             levels.Add("famineFight");
+            levels.Add("warStage");
+            levels.Add("warFight");
+            levels.Add("pestilenceStage");
+            levels.Add("pestilenceFight");
 		    levels.Add("deathStage");
-		    levels.Add("deathFight");
+            levels.Add("deathFight");
 
             this.walls = new int[WIDTH / TILE][];
             for(int i = 0; i < walls.Length; i++)
@@ -93,8 +96,11 @@ namespace Spacemageddon
 		    camera.Y = (int)player.Y - S_HEIGHT / 2;
 		    camera.Width = S_WIDTH;
 		    camera.Height = S_HEIGHT;
-            current = "pestilenceStage";		
-		    load(current);        
+            current = levels[0];		
+		    load(current);
+            backgroundMusic.Stop();
+            menuMusic = loadSound("Intro.wav");
+            menuMusic.Play();
         }
 
         protected override void LoadContent()
@@ -107,6 +113,8 @@ namespace Spacemageddon
             lava = lavaSheet.Split(32, 32);
             abilityTex = new TextureRegion(loadTexture("powerups.png")).Split(32, 32);
             respawn = loadSound("RespawnSound.wav");
+            mainMenu.Load();
+            playerShoot = loadSound("PlayerShoot.wav");
         }
 
         protected override void UnloadContent()
@@ -116,6 +124,22 @@ namespace Spacemageddon
 
         protected override void Update(GameTime gameTime)
         {
+            if (mainMenu != null)
+            {
+                int status = mainMenu.Updating();
+                if (status == 0)
+                {
+                    mainMenu.Unload();
+                    mainMenu = null;
+                    menuMusic.Stop();
+                    backgroundMusic.Play();
+                }
+                else if (status == 1)
+                {
+                    Exit();
+                }
+                return;
+            }
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             base.Update(gameTime);
@@ -133,11 +157,13 @@ namespace Spacemageddon
 
             //Update game state
             this.player.update(walls);
+            if (this.player.respawning && this.respawn.State == SoundState.Stopped)
+                this.respawn.Play();
             //Die on spikes or with 0 health
             if (this.player.Health <= 0 || !Entity.free(this.player.getBounds(), spikes))
                 die();
 		    //Fires bullet if bullet key is pressed
-		    if(keys.IsKeyDown(Keys.F) && !previous.IsKeyDown(Keys.F))
+		    if(keys.IsKeyDown(Keys.F) && player.fireDelay == 0)
 		    {
                 Bullet bullet = new Bullet(player.X + 10 * player.getFacing(), player.Y + TILE / 2, 10 * player.getFacing(), 0, null);
 			    this.bullets.Add(bullet);
@@ -148,23 +174,11 @@ namespace Spacemageddon
                     bullet = new Bullet(player.X + 10 * player.getFacing(), player.Y + TILE / 2, 10 * player.getFacing(), -1, null);
                     this.bullets.Add(bullet);
                 }
-		    }
-            if (keys.IsKeyDown(Keys.D) && !previous.IsKeyDown(Keys.D))
-		    {
-			    Bullet bullet = new Bullet(player.X + TILE / 2, player.Y + TILE / 2, 0, 0, TILE / 2, null);
-                Rectangle bounds = player.getBounds();
-                bounds.Y -= TILE / 2;
-			    if(!Entity.free(bounds, this.walls))
-				    bullet.setVelocity(0, TILE / 3);
-			    else
-				    bullet.setVelocity(0, -TILE / 3);
-			    this.bullets.Add(bullet);
-		    }
-            if (keys.IsKeyDown(Keys.S) && ! previous.IsKeyDown(Keys.S))
-		    {
-			    Shield shield = new Shield(this.player.X + TILE / 2, this.player.Y + TILE / 2);
-			    this.shields.Add(shield);
-		    }
+                playerShoot.Play();
+                player.fireDelay = 30;
+            }
+            if (player.fireDelay > 0)
+                player.fireDelay--;
 		    //Update bullets
             for (int i = 0; i < bullets.Count; i++)
             {
@@ -230,14 +244,22 @@ namespace Spacemageddon
                     Bullet enemyBullet = new Bullet(enemy.X + TILE / 2, enemy.Y + TILE / 2, vX, 0, null);
                     this.enemyBullets.Add(enemyBullet);
                     enemy.setDelay(120);
+                    if(camera.Intersects(enemy.getBounds()))
+                        enemy.shoot.Play();
                 }
-                else if (enemy.getType() == Enemy.Type.Turret && enemy.getDelay() <= 0)
+                else if (enemy.getType() == Enemy.Type.Turret)
                 {
-                    float vX = (-Math.Abs(enemy.X - player.X)) / (enemy.X - player.X) * 3;
-                    Bullet enemyBullet = new Bullet(enemy.X + TILE / 2, enemy.Y + TILE / 2,
-                            vX, 0, null);
-                    this.enemyBullets.Add(enemyBullet);
-                    enemy.setDelay(90);
+                    enemy.Facing = (enemy.X < player.X) ? 1 : -1;
+                    if (enemy.getDelay() <= 0)
+                    {
+                        float vX = (-Math.Abs(enemy.X - player.X)) / (enemy.X - player.X) * 3;
+                        Bullet enemyBullet = new Bullet(enemy.X + TILE / 2, enemy.Y + TILE / 2,
+                                vX, 0, null);
+                        this.enemyBullets.Add(enemyBullet);
+                        enemy.setDelay(90);
+                        if (camera.Intersects(enemy.getBounds()))
+                            enemy.shoot.Play();
+                    }
                 }
                 else if (enemy.getType() == Enemy.Type.Robot && enemy.getDelay() <= 0)
                 {
@@ -245,6 +267,8 @@ namespace Spacemageddon
                             0, 4, null);
                     this.enemyBullets.Add(enemyBullet);
                     enemy.setDelay(120);
+                    if (camera.Intersects(enemy.getBounds()))
+                        enemy.shoot.Play();
                 }
                 if (enemy.getType() == Enemy.Type.FlySlamming && Math.Abs(enemy.X- this.player.X) <= TILE)
                     enemy.setVelocity(0, -15);
@@ -311,34 +335,233 @@ namespace Spacemageddon
 			    switch(this.boss.getType())
 			    {
 				    case Boss.Type.Death:
-					    this.boss.setDelay(this.boss.getDelay() - 1);
-					    if(this.boss.getDelay() <= 0)
-					    {
-						    float offset = this.player.X;
-						    offset -= this.player.getFacing() * 200;
-						    if(offset < 0) offset = 0;
-						    if(offset > WIDTH - TILE * 2f) offset = WIDTH - TILE * 2f;
-						    this.boss.setPosition(offset, this.boss.Y);
-						    float vX = (-Math.Abs(this.boss.X - this.player.X) / (this.boss.X - this.player.X)) * 3;
-						    vX *= 10 / this.boss.Health;
-						    Bullet enemyBullet = new Bullet(this.boss.X + TILE / 2, this.boss.Y + TILE / 2, 
-								    vX, 0, null);
-						    this.enemyBullets.Add(enemyBullet);
-						    this.boss.setDelay(60 + (int)this.boss.Health * 6);
-					    }
+                        boss.target = player.getPosition();
+                        if (boss.getDelay() > 0)
+                        {
+                            if (boss.Y - boss.target.Y <= -2)
+                                boss.Y += 2;
+                            else if (boss.Y - boss.target.Y >= 2)
+                                boss.Y -= 2;
+                            if (boss.X - boss.target.X <= -2)
+                            {
+                                boss.X += 2;
+                                boss.facing = 1;
+                            }
+                            else if (boss.X - boss.target.X >= 2)
+                            {
+                                boss.X -= 2;
+                                boss.facing = -1;
+                            }
+                            boss.setDelay(boss.getDelay() - 1);
+                        }
+                        else
+                        {
+                            if (boss.getDelay() < -60)
+                                boss.setDelay(240);
+                            else
+                                boss.setDelay(boss.getDelay() - 1);
+                        }
 					    break;
                     case Boss.Type.Famine:
+                        if(boss.Y > TILE)
+                        {
+                            if (boss.X > 0 && boss.X < WIDTH - TILE * 3)
+                            {
+                                boss.X += 4;
+                                boss.facing = 1;
+                                if (boss.X % 64 == 0)
+                                {
+                                    Bullet eb = new Bullet(boss.X, boss.Y, 0, -4, null);
+                                    enemyBullets.Add(eb);
+                                }
+                            }
+                            else if (boss.X <= 0)
+                            {
+                                if (boss.Y < HEIGHT - TILE * 3)
+                                    boss.Y += 4;
+                                else
+                                    boss.X += 4;
+                                boss.facing = 1;
+                            }
+                            else
+                                boss.Y -= 4;
+                        }
+                        else
+                        {
+                            if(boss.X > 0)
+                            {
+                                boss.X -= 4;
+                                boss.facing = -1;
+                                if(boss.X % 128 == 0)
+                                {
+                                    Bullet eb = new Bullet(boss.X, boss.Y + TILE , -6, 0, null);
+                                    enemyBullets.Add(eb);
+                                }
+                            }
+                            else
+                                boss.Y += 4;
+                        }
 					    break;
                     case Boss.Type.Pestilence:
+                        if (boss.getDelay() <= 0)
+                        {
+                            Bullet eb;
+                            Random rand = new Random();
+                            boss.X += TILE / 2;
+                            boss.Y -= TILE / 4;
+                            switch (rand.Next(6))
+                            {
+                                case 0:
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 6, 0, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -6, 0, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 0, 6, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 0, -6, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                                case 1:
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, 4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -4, 4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                                case 2:
+                                     eb = new Bullet(boss.X, boss.Y + TILE, 6, 0, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, 4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                                case 3:
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -6, 0, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -4, 4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                                case 4:
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 0, 6, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, 4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                                case 5:
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 0, -6, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, -4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    eb = new Bullet(boss.X, boss.Y + TILE, 4, -4, null);
+                                    enemyBullets.Add(eb);
+                                    break;
+                            }
+                            boss.Y += TILE / 4;
+                            boss.X -= TILE / 2;
+                            boss.setDelay(25);
+                        }
+                        else
+                        {
+                            boss.setDelay(boss.getDelay() - 1);
+                        }
 					    break;
                     case Boss.Type.War:
-					    break;
-				    default:
+                        if(boss.getDelay() <= 0)
+                        {
+                            Random rand = new Random();
+                            switch(rand.Next(4))
+                            {
+                                case 0:
+                                    for (int i = -1; i <= 1; i += 2)
+                                    {
+                                        Bullet eb = new Bullet(boss.X, boss.Y + TILE, 6 * i, 0, null);
+                                        enemyBullets.Add(eb);
+                                    }
+                                    break;
+                                case 1:
+                                    int side = (int)(boss.X - player.X);
+                                    side = -Math.Abs(side) / side;
+                                    for (int i = -2; i <= 2; i += 2)
+                                    {
+                                        Bullet eb = new Bullet(boss.X, boss.Y + TILE, 6 * side, i, null);
+                                        enemyBullets.Add(eb);
+                                    }
+                                    break;
+                                case 2:
+                                    this.enemies.Add(new Enemy(boss.X, boss.Y, 3, 0, null, Enemy.Type.FlyFiring, 1));
+                                    break;
+                                case 3:
+                                    for (int i = -1; i <= 1; i += 2)
+                                        this.enemies.Add(new Enemy(boss.X, boss.Y, i * 3, 0, null, Enemy.Type.Fly, 1));
+                                    break;
+                            }
+                            boss.setDelay(90);
+                        }
+                        boss.setDelay(boss.getDelay() - 1);
 					    break;
 			    }
-			    if(this.boss.Health <= 0)
-				    Console.WriteLine("VICTORY");
+                if (boss.getBounds().Intersects(player.getBounds()))
+                    player.damage();
+                if(boss.Health <= 0)
+                {
+                    this.good = new Upgrade(boss.getType(), true);
+                    this.bad = new Upgrade(boss.getType(), false);
+                    this.boss = null;
+                }
 		    }
+            if(good != null)
+            {
+                if(good.getBounds().Intersects(player.getBounds()))
+                {
+                    switch(good.type)
+                    {
+                        case Boss.Type.Death:
+                            player.abilities[Player.Abilities.Life] = true;
+                            break;
+                        case Boss.Type.War:
+                            player.abilities[Player.Abilities.Harp] = true;
+                            break;
+                        case Boss.Type.Pestilence:
+                            player.abilities[Player.Abilities.Light] = true;
+                            break;
+                        case Boss.Type.Famine:
+                            player.abilities[Player.Abilities.Plenty] = true;
+                            break;
+                    }
+                    good = null;
+                    bad = null;
+                    door = new Door(S_WIDTH - TILE, TILE);
+                }
+                else if (bad.getBounds().Intersects(player.getBounds()))
+                {
+                    switch (bad.type)
+                    {
+                        case Boss.Type.Death:
+                            player.abilities[Player.Abilities.Scythe] = true;
+                            break;
+                        case Boss.Type.War:
+                            player.abilities[Player.Abilities.Sword] = true;
+                            break;
+                        case Boss.Type.Pestilence:
+                            player.abilities[Player.Abilities.Staff] = true;
+                            break;
+                        case Boss.Type.Famine:
+                            player.abilities[Player.Abilities.Swarm] = true;
+                            break;
+                    }
+                    good = null;
+                    bad = null;
+                    door = new Door(S_WIDTH - TILE, TILE);
+                }
+            }
            
 		    if(keys.IsKeyDown(Keys.PageUp) && !previous.IsKeyDown(Keys.PageUp))
 			    this.next();
@@ -349,6 +572,12 @@ namespace Spacemageddon
 
         protected override void Draw(GameTime gameTime)
         {
+            if(mainMenu != null)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                mainMenu.DrawMenu(gameTime, batch);
+                return;
+            }
             GraphicsDevice.Clear(new Color(128, 128, 128, 255));
             this.batch.Begin();
             int offset = (int)(camera.X / 4) % background.Width;
@@ -435,8 +664,11 @@ namespace Spacemageddon
              player.getTexture().Draw(batch, new Vector2(player.X - camera.X, HEIGHT - TILE * 2 - player.Y - camera.Y), scale);
 		    //Draw enemies
 		    foreach(Enemy enemy in this.enemies)
-			    if(camera.Intersects(enemy.getBounds()))
+                if (camera.Intersects(enemy.getBounds()))
+                {
                     enemy.getTex().Draw(batch, new Vector2(enemy.X - camera.X, HEIGHT - TILE * 2 - enemy.Y - camera.Y), scale);
+                    shapeRenderer.rect(batch, new Rectangle((int)enemy.X - camera.X, HEIGHT - TILE * 2 - (int)enemy.Y - camera.Y - 2, (int)enemy.Health * 6, 2), Color.Red);
+                }
             foreach (Powerup powerup in this.powerups)
                 if (camera.Intersects(powerup.getBounds()))
                 {
@@ -445,8 +677,15 @@ namespace Spacemageddon
                     batch.Draw(powerup.getTexture(), destination, Color.White);
                 }
             if (this.boss != null)
-                boss.getTexture().Draw(batch, new Vector2(boss.X, HEIGHT - TILE * 3 - boss.Y), scale);
-		
+                boss.getTexture(walls).Draw(batch, new Vector2(boss.X, HEIGHT - TILE * 3 - boss.Y), scale);
+		    if(good != null)
+            {
+                Vector2 v = good.getPosition();
+                v.Y = HEIGHT - TILE * 2 - v.Y;
+                good.getTexture().Draw(batch, v);
+                v.X = bad.getPosition().X;
+                bad.getTexture().Draw(batch, v);
+            }
 		    //Draw GUI
             Vector2 health = new Vector2(TILE * 2, HEIGHT - TILE * 1.8f);
             Vector2 filledBar = new Vector2(player.Health * TILE, TILE * 0.5f);
@@ -457,8 +696,8 @@ namespace Spacemageddon
 		    if(this.boss != null)
 		    {
 			    this.shapeRenderer.setColor(1, 0, 0, 1);
-			    health = new Vector2(TILE * 6, HEIGHT- TILE * 1.5f);
-			    filledBar = new Vector2(boss.Health * (TILE * 2), TILE);
+			    health = new Vector2(TILE * 2, HEIGHT- TILE * 1.5f);
+			    filledBar = new Vector2(boss.Health / 30 * (TILE * 12), TILE);
 			    this.shapeRenderer.rect(batch, new Rectangle((int)health.X, HEIGHT - (int)health.Y - TILE / 2, (int)filledBar.X, (int)filledBar.Y));
 		    }
             if (player.abilities[Player.Abilities.Scythe])
@@ -489,9 +728,7 @@ namespace Spacemageddon
 
         public static Texture2D loadTexture(string name)
         {
-            //System.IO.Stream stream = System.IO.File.Open(name, System.IO.FileMode.Open);
             Texture2D texture = contentManager.Load<Texture2D>(name.Substring(0, name.Length - 4));//Texture2D.FromStream(Main.instance.GraphicsDevice, stream);
-            //stream.Close();
             content.Add<Texture2D>(texture);
             return texture;
         }
@@ -502,6 +739,13 @@ namespace Spacemageddon
             content.Add<SoundEffect>(sound);
             SoundEffectInstance snd = content.Add<SoundEffectInstance>(sound.CreateInstance());
             return snd;
+        }
+
+        public static SoundEffect loadSoundSource(string name)
+        {
+            SoundEffect sound = contentManager.Load<SoundEffect>(name.Substring(0, name.Length - 4));
+            content.Add<SoundEffect>(sound);
+            return sound;
         }
 
         public static Rectangle Scale(Rectangle original, Vector2 scale)
@@ -516,14 +760,22 @@ namespace Spacemageddon
 
         private void load(String levelname)
 	    {
+            if (backgroundMusic != null)
+                backgroundMusic.Stop();
 		    player.setSpritesheet(new TextureRegion(loadTexture("spaceCharacter.png")));
+            this.good = null;
+            this.bad = null;
 		    this.score = 0;
+            Dictionary<Player.Abilities, bool> abilities = player.abilities;
 		    this.player = new Player(TILE, TILE, null);
+            this.player.abilities = abilities;
 		    this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
 		    this.enemies = new List<Enemy>();
 		    this.bullets = new List<Bullet>();
 		    this.enemyBullets = new List<Bullet>();
             this.checkpoints = new List<Checkpoint>();
+            this.boss = null;
+            this.door = null;
 		    using(StreamReader stream = File.OpenText(levelname))
             {
 			    WIDTH = Convert.ToInt16(stream.ReadLine());
@@ -551,13 +803,13 @@ namespace Spacemageddon
 					    switch(x)
 					    {
 						    case 2:
-							    enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Patrol, 3 + offset));
+							    enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Patrol, 2 + offset));
 							    break;
 						    case 3:
                                  enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.PatrolFiring, 3 + offset));
 							    break;
 						    case 4:
-                                enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Fly, 3 + offset));
+                                enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Fly, 2 + offset));
 							    break;
 						    case 5:
                                 enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.FlyFiring, 3 + offset));
@@ -569,10 +821,10 @@ namespace Spacemageddon
 							    spikes[i][j] = 1;
 							    break;
 						    case 8:
-                                enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Turret, 4 + offset));
+                                enemies.Add(new Enemy(i * TILE, j * TILE, (int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Turret, 2 + offset));
 							    break;
                             case 9:
-                                enemies.Add(new Enemy(i * TILE, j * TILE,(int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Robot, 5 + offset));
+                                enemies.Add(new Enemy(i * TILE, j * TILE,(int)(rand.Next(1) - 0.5) * 2, 0, null, Enemy.Type.Robot, 3 + offset));
                                 break;
 						    case 'A':
                                 walls[i][j] = 2;    
@@ -615,8 +867,30 @@ namespace Spacemageddon
                         backgroundMusic = loadSound("PestilencesLake.wav");
                         break;
                 }
+                switch (levelname)
+                {
+                    case "deathFight":
+                        boss.setType(Boss.Type.Death);
+                        backgroundMusic = loadSound("bossfight.mp3");
+                        break;
+                    case "warFight":
+                        boss.setType(Boss.Type.War);
+                        backgroundMusic = loadSound("bossfight.mp3");
+                        break;
+                    case "famineFight":
+                        boss.setType(Boss.Type.Famine);
+                        boss.Health = 11;
+                        backgroundMusic = loadSound("bossfight.mp3");
+                        break;
+                    case "pestilenceFight":
+                        boss.setType(Boss.Type.Pestilence);
+                        backgroundMusic = loadSound("bossfight.mp3");
+                        break;
+                }
                 backgroundMusic.IsLooped = true;
                 backgroundMusic.Play();
+                if(boss == null)
+                    die();
             }
 	    }
 
@@ -763,10 +1037,17 @@ namespace Spacemageddon
 
         private void die()
         {
-            this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
-            this.player.setPosition(Checkpoint.ActiveCheckpoint.X, HEIGHT - TILE);
-            this.player.respawning = true;
-            respawn.Play();
+            if (boss != null)
+                load(current);
+            else
+            {
+                this.player.Health = player.abilities[Player.Abilities.Life] ? 10 : 5;
+                if (Checkpoint.ActiveCheckpoint != null)
+                    this.player.setPosition(Checkpoint.ActiveCheckpoint.X, HEIGHT - TILE);
+                else
+                    this.player.setPosition(TILE, HEIGHT - TILE);
+                this.player.respawning = true;
+            }
         }
 
         private void loadOptions(String xmlLocation)
@@ -792,6 +1073,11 @@ namespace Spacemageddon
             S_WIDTH = graphics.PreferredBackBufferWidth;
             S_HEIGHT = graphics.PreferredBackBufferHeight;
             graphics.ApplyChanges();
+        }
+
+        private double distance(Vector2 v1, Vector2 v2)
+        {
+            return Math.Sqrt(Math.Pow(v1.X - v2.X, 2) + Math.Pow(v1.X - v2.X, 2));
         }
     }
 
@@ -909,6 +1195,63 @@ namespace Spacemageddon
         {
             source.Dispose();
             stream.Close();
+        }
+    }
+
+    public class Menu : Game
+    {
+        private TextureRegion play, exit, cursor;
+        private int selected;
+        private SpriteBatch batch;
+        private KeyboardState previous;
+        public void Load()
+        {
+            LoadContent();
+        }
+        protected override void LoadContent()
+        {
+            base.LoadContent();
+            play = new TextureRegion(Main.loadTexture("buttonPlay.png"));
+            exit = new TextureRegion(Main.loadTexture("buttonExit.png"));
+            cursor = new TextureRegion(Main.loadTexture("cursor.png"));
+        }
+
+        public int Updating()
+        {
+            var key = Keyboard.GetState();
+            if (key.IsKeyDown(Keys.Up) && !previous.IsKeyDown(Keys.Up))
+                selected = (selected != 0) ? selected - 1 : 1;
+            if (key.IsKeyDown(Keys.Down) && !previous.IsKeyDown(Keys.Down))
+                selected = (selected + 1) % 2;
+            previous = Keyboard.GetState();
+            return (key.IsKeyDown(Keys.Space)) ? selected : -1;
+        }
+
+        public void DrawMenu(GameTime gameTime, SpriteBatch batch)
+        {
+            this.batch = batch;
+            batch.Begin();
+            Draw(gameTime);
+            batch.End();
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            base.Draw(gameTime);
+            play.Draw(batch, new Vector2(128, 128));
+            exit.Draw(batch, new Vector2(128, 256));
+            cursor.Draw(batch, new Vector2(96, 128 * (selected + 1)));
+        }
+
+        public void Unload()
+        {
+            UnloadContent();
+        }
+
+        protected override void UnloadContent()
+        {
+            base.UnloadContent();
+            Content.Unload();
         }
     }
 }

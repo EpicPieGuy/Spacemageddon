@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Storage;
 using Microsoft.Xna.Framework.GamerServices;
+using Microsoft.Xna.Framework.Audio;
 using Spacemageddon;
 using LibGDX_Port;
 #endregion
@@ -200,6 +201,7 @@ namespace Entities
     class Player : Entity
     {
         private int facing, invincibility, state, walkState, walkFrame, amtDamage, damageTimer, fallDelay;
+        public int fireDelay;
 	    private TextureRegion[] textures;
         private TextureRegion respawnTex;
         private bool jumping = false;
@@ -223,6 +225,7 @@ namespace Entities
             abilities[Abilities.Sword] = false;
             abilities[Abilities.Swarm] = false;
             abilities[Abilities.Staff] = false;
+            fireDelay = 0;
 	    }
 
         public int alignment()
@@ -267,7 +270,7 @@ namespace Entities
 		    }
 		    if(free(bounds, walls))
 			    jumping = true;
-            if (keyboard.IsKeyDown(Keys.F) && !respawning)
+            if ((keyboard.IsKeyDown(Keys.F) || previous.IsKeyDown(Keys.F)) && !respawning)
 			    state = 4;
             if (fallDelay == 0)
             {
@@ -380,15 +383,18 @@ namespace Entities
         private static Dictionary<Type, TextureRegion> textures;
         private static Dictionary<Type, int> frames;
         public bool poisoned;
+        public SoundEffectInstance shoot;
+        private static SoundEffect shootSound;
 	    static Enemy()
 	    {
 			textures = new Dictionary<Type, TextureRegion>();
 			textures.Add(Type.Ghost, new TextureRegion(Main.loadTexture("ghost.png")));
-			TextureRegion patrol = new TextureRegion(Main.loadTexture("enemyPatrol.png"));
+			TextureRegion patrol = new TextureRegion(Main.loadTexture("walkingEnemy.png"));
+            TextureRegion firing = new TextureRegion(Main.loadTexture("walkingFiring.png"));
             TextureRegion flying = new TextureRegion(Main.loadTexture("flyingEnemy.png"));
             TextureRegion flyShooting = new TextureRegion(Main.loadTexture("flyEnemyShooting.png"));
-			textures.Add(Type.Patrol, patrol.Split(32, 32)[0][0]);
-			textures.Add(Type.PatrolFiring, patrol.Split(32, 32)[0][1]);
+			textures.Add(Type.Patrol, patrol);
+			textures.Add(Type.PatrolFiring, firing);
 			textures.Add(Type.Fly, flying);
 			textures.Add(Type.FlyFiring, flyShooting);
 			textures.Add(Type.FlySlamming, patrol.Split(32, 32)[0][0]);
@@ -397,6 +403,9 @@ namespace Entities
             frames = new Dictionary<Type, int>();
             frames.Add(Type.Fly, 4);
             frames.Add(Type.FlyFiring, 4);
+            frames.Add(Type.Patrol, 4);
+            frames.Add(Type.PatrolFiring, 4);
+            shootSound = Main.loadSoundSource("EnemyShoot.wav");
 	    }
 	
 	    public Enemy(float x, float y, Texture2D t, int health) : this(x, y, 0, 0, t, Type.Patrol, health) { }
@@ -419,35 +428,13 @@ namespace Entities
 			    default:
 				    break;
 		    }
+            this.Health = health;
             frame = 0;
-            switch (type)
-            {
-                case Type.Patrol:
-                    this.Health = 3;
-                    break;
-                case Type.PatrolFiring:
-                    this.Health = 4;
-                    break;
-                case Type.Fly:
-                    this.Health = 3;
-                    break;
-                case Type.FlyFiring:
-                    Health = 4;
-                    break;
-                case Type.Ghost:
-                    Health = 2;
-                    break;
-                case Type.Turret:
-                    Health = 2;
-                    break;
-                case Type.Robot:
-                    Health = 5;
-                    break;
-            }
             poisoned = false;
+            shoot = shootSound.CreateInstance();
 	    }
 
-        public int Facing { get { return facing; } }
+        public int Facing { get { return facing; } set { facing = value; } }
 	
 	    public void update(int[][] walls)
 	    {
@@ -588,6 +575,50 @@ namespace Entities
 	    }
     }
 
+    class Upgrade : Entity
+    {
+        private static Dictionary<Boss.Type, TextureRegion> goodTex, badTex;
+        public Boss.Type type;
+        private bool good;
+
+        static Upgrade()
+        {
+            goodTex = new Dictionary<Boss.Type, TextureRegion>();
+            badTex = new Dictionary<Boss.Type, TextureRegion>();
+            TextureRegion sheet = new TextureRegion(Main.loadTexture("powerups.png"));
+            badTex.Add(Boss.Type.Death, sheet.Split(32, 32)[0][0]);
+            badTex.Add(Boss.Type.War, sheet.Split(32, 32)[1][0]);
+            badTex.Add(Boss.Type.Pestilence, sheet.Split(32, 32)[2][0]);
+            badTex.Add(Boss.Type.Famine, sheet.Split(32, 32)[3][0]);
+            goodTex.Add(Boss.Type.Death, sheet.Split(32, 32)[5][0]);
+            goodTex.Add(Boss.Type.War, sheet.Split(32, 32)[4][0]);
+            goodTex.Add(Boss.Type.Famine, sheet.Split(32, 32)[6][0]);
+            goodTex.Add(Boss.Type.Pestilence, sheet.Split(32, 32)[7][0]);
+        }
+        public Upgrade(Boss.Type type, bool good) : base(null)
+        {
+            this.type = type;
+            this.good = good;
+            if(good)
+            {
+                this.X = Main.TILE;
+                this.Y = Main.TILE;
+            }
+            else
+            {
+                this.X = Main.S_WIDTH - Main.TILE;
+                this.Y = Main.TILE;
+            }
+        }
+        public TextureRegion getTexture()
+        {
+            if (good)
+                return goodTex[type];
+            else
+                return badTex[type];
+        }
+    }
+
     class Shield : Entity
     {
 	    private int life;
@@ -613,24 +644,34 @@ namespace Entities
     class Boss : Entity
     {
 	    private static Dictionary<Type, TextureRegion> textures;
-	    private int facing, delay;
+	    public int facing, delay;
 	    private Type type;
+        public Vector2 target;
+
 	    static Boss()
 	    {
 		    textures = new Dictionary<Type, TextureRegion>();
 			textures.Add(Type.Death, new TextureRegion(Main.loadTexture("death.png")));
+            textures.Add(Type.War, new TextureRegion(Main.loadTexture("war.png")));
+            textures.Add(Type.Pestilence, new TextureRegion(Main.loadTexture("pestilence.png")));
+            textures.Add(Type.Famine, new TextureRegion(Main.loadTexture("famine.png")));
 	    }
 	    public Boss(float x, float y, Texture2D t) : base(x, y, t)
 	    {
 		    this.facing = 1;
 		    this.type = Type.Death;
-            this.Health = 10;
+            this.Health = 30;
 	    }
 	
 	    public Type getType()
 	    {
 		    return this.type;
 	    }
+
+        public void setType(Type t)
+        {
+            this.type = t;
+        }
 	
 	    public int getDelay()
 	    {
@@ -642,11 +683,24 @@ namespace Entities
 		    this.delay = delay;
 	    }
 	
-	    public TextureRegion getTexture()
+	    public TextureRegion getTexture(int[][] walls)
         {
             TextureRegion tex = textures[this.type];
-            tex.FlipX = !(facing == 1);
-            return tex;
+            switch (type)
+            {
+                case Type.Death:
+                    Rectangle r = getBounds();
+                    r.Y -= 2;
+                    if (free(r, walls))
+                        tex = tex.Split(44, 48)[1][0];
+                    else
+                        tex = tex.Split(44, 48)[0][0];
+                    tex.FlipX = !(facing == 1);
+                    return tex;
+                default:
+                    tex.FlipX = !(facing == 1);
+                    return tex;
+            }
 	    }
 	
 	    public enum Type

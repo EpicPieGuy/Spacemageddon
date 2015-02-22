@@ -1,54 +1,23 @@
 ﻿ART:
--Add detail to existing enemies
 -Add detail to horsemen
--Animate horsemen
--Create enemy death animations
+?Create enemy death animations
 -Animate Death
--Animate Pestilence
 -Animate War
 -Animate Famine
--Draw hidden boss
--Draw confrontation tileset
--Draw walking enemies
+-Animate opening cutscene
 
-DESIGN:
--Choose famine's first stage attacks
--Choose famine's second stage attacks
--Design Demon boss
--Design Mech boss
--Finish opening stage
--Create hidden boss
--Design collectables
-
-PROGRAMMING:
--Implement Famine boss fight
--Implement pestilence boss fight
--Implement War boss fight
--Implement Death boss
--Implement hidden boss
--Create menu
--Create options menu
-	-Create sound sliders
-	-Create vsync toggle
-	-Maybe resolution?
-	-Difficulty
--Implement death animations
--Limit number of lives
-
-UI/UX:
--Design menu
+PROGRAMMING: ALPHA COMPLETE
+?Implement death animations
 
 SFX:
--Create shoot sound for all enemies/player/bosses
--Create death sound for each enemy
--Create death sound for player
--Create respawn sound for player
+?Create death sound for each enemy
 -Create level complete sound
--Create boss battle sounds
 
-Music: COMPLETE WREKT GG SCRUBS
+Music:
+-ACTUALLY DONE THIS TIME
 
 COMPLETE:
+-Add detail to existing enemies
 -Choose Pestilence's first stage attacks
 -Choose Pestilence's second stage attacks
 -Choose war's first stage attacks
@@ -102,3 +71,23 @@ Implement powerups
 -Create Pestilence's stage music
 -Create human battle music
 -Create alien battle music
+-Implement Famine boss fight
+-Design Famine
+-Design menu
+-Create menu
+-Implement War boss fight
+-Implement Death boss
+-Animate Famine
+-Draw walking enemies
+-Create firing sound for player
+-Create firing sound for enemy
+-Horsemen battle music
+-Create respawn sound for player
+-Implement enemy healthbars
+-Implement enemies shooting
+-Implement war boss fight
+-Implement pestilence boss fight
+-Implement boss reward choice
+-Draw turrets
+-Implement turrets dynamically facing
+-Create boss battle sounds
