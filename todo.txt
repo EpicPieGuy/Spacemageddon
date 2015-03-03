@@ -1,20 +1,32 @@
 ﻿ART:
--Add detail to horsemen
+?Add detail to horsemen
 ?Create enemy death animations
--Animate Death
--Animate War
--Animate Famine
--Animate opening cutscene
+-Animate closing cutscene
+	-Draw ship leaving
+-Create level transitions
+	-Famine to War
+	-War to Pestilence
+	-Pestilence to Death
 
-PROGRAMMING: ALPHA COMPLETE
+PROGRAMMING:
 ?Implement death animations
+?Implement particle system
+-Add volume controls to main menu
+-Have escape open main menu (with continue instead of play)
+-Create redux bosses
+-Create opening cutscene
+-Create level transition code
 
-SFX:
-?Create death sound for each enemy
--Create level complete sound
+DESIGN:
+?Penalty to walking under birds?
+
+SFX: ALPHA COMPLETE
+?Create death sound
+?Create level complete sound
+?Create hit sound
 
 Music:
--ACTUALLY DONE THIS TIME
+ACTUALLY DONE THIS TIME
 
 COMPLETE:
 -Add detail to existing enemies
@@ -91,3 +103,14 @@ Implement powerups
 -Draw turrets
 -Implement turrets dynamically facing
 -Create boss battle sounds
+-Boss shoot sounds
+-Animate War
+-Animate Death
+-Animate Famine
+-Get score
+-Ramp enemy health as levels progress
+-Nerf healing
+-Draw planet
+-Draw planet
+-Draw ship
+-Animate opening cutscene

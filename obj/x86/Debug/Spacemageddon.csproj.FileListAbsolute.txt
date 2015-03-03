@@ -142,3 +142,9 @@ J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\walkingFiring.xnb
 J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\PlayerShoot.xnb
 J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\EnemyShoot.xnb
 J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\bossfight.xnb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\Score.xnb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\bullet.xnb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\ship.xnb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\planet.xnb
+D:\Spacemageddon\Spacemageddon\obj\x86\Debug\Spacemageddon.exe
+D:\Spacemageddon\Spacemageddon\obj\x86\Debug\Spacemageddon.pdb

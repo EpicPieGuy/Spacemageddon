@@ -237,10 +237,10 @@ namespace Entities
 	
 	    public void update(int[][] walls)
 	    {
-            if (abilities[Abilities.Light] && this.Health < (this.abilities[Player.Abilities.Life] ? 10 : 5))
-                this.Health += 0.01f;
+            if (abilities[Abilities.Light] && this.Health < (this.abilities[Player.Abilities.Life] ? 5 : 2))
+                this.Health += 0.005f;
             KeyboardState keyboard = Keyboard.GetState();
-            int walk = (keyboard.IsKeyDown(Keys.LeftShift)) ? 6 : 3;
+            int walk = (keyboard.IsKeyDown(Keys.X)) ? 6 : 3;
 		    state = 0;
 		    jumping = false;
 		    //Update game state
@@ -270,7 +270,7 @@ namespace Entities
 		    }
 		    if(free(bounds, walls))
 			    jumping = true;
-            if ((keyboard.IsKeyDown(Keys.F) || previous.IsKeyDown(Keys.F)) && !respawning)
+            if ((keyboard.IsKeyDown(Keys.C) || previous.IsKeyDown(Keys.C)) && !respawning)
 			    state = 4;
             if (fallDelay == 0)
             {
@@ -647,6 +647,7 @@ namespace Entities
 	    public int facing, delay;
 	    private Type type;
         public Vector2 target;
+        public static SoundEffectInstance shoot;
 
 	    static Boss()
 	    {
@@ -655,6 +656,7 @@ namespace Entities
             textures.Add(Type.War, new TextureRegion(Main.loadTexture("war.png")));
             textures.Add(Type.Pestilence, new TextureRegion(Main.loadTexture("pestilence.png")));
             textures.Add(Type.Famine, new TextureRegion(Main.loadTexture("famine.png")));
+            shoot = Main.loadSound("EnemyShoot.wav");
 	    }
 	    public Boss(float x, float y, Texture2D t) : base(x, y, t)
 	    {
@@ -695,12 +697,16 @@ namespace Entities
                         tex = tex.Split(44, 48)[1][0];
                     else
                         tex = tex.Split(44, 48)[0][0];
-                    tex.FlipX = !(facing == 1);
-                    return tex;
-                default:
-                    tex.FlipX = !(facing == 1);
-                    return tex;
+                    break;
+                case Type.War:
+                    if (delay < 20 || delay > 55)
+                        tex = tex.Split(48, 48)[1][0];
+                    else
+                        tex = tex.Split(48, 48)[0][0];
+                    break;
             }
+            tex.FlipX = !(facing == 1);
+            return tex;
 	    }
 	
 	    public enum Type
