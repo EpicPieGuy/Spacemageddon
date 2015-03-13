@@ -44,6 +44,7 @@ namespace Entities
         public float VelocityX { get { return this.velocity.X; } set { this.velocity.X = value; } }
         public float VelocityY { get { return this.velocity.Y; } set { this.velocity.Y = value; } }
         public float Health { get { return this.health; } set { this.health = value; } }
+        public int Flashing { get; set; }
         public Texture2D Texture { get { return this.texture; } }
         public void setPosition(float x, float y)
         {
@@ -326,6 +327,7 @@ namespace Entities
 		    {
                 this.Health -= amt;
 			    this.invincibility = 90;
+                this.Flashing = 90;
 		    }
 	    }
 
@@ -648,6 +650,7 @@ namespace Entities
 	    private Type type;
         public Vector2 target;
         public static SoundEffectInstance shoot;
+        public bool redux;
 
 	    static Boss()
 	    {

@@ -32,12 +32,22 @@ namespace LibGDX_Port
         public int Height { get { return region.Height; } set { region.Height = value; } }
         public bool FlipX { get { return flipX; } set { flipX = value; } }
         public bool FlipY { get { return flipY; } set { flipY = value; } }
+        public void Draw(SpriteBatch batch, Vector2 position, Color color)
+        {
+            this.Draw(batch, position, new Vector2(1, 1), color);
+        }
+
         public void Draw(SpriteBatch batch, Vector2 position) 
         {
             this.Draw(batch, position, new Vector2(1, 1));
         }
 
         public void Draw(SpriteBatch batch, Vector2 position, Vector2 scale)
+        {
+            this.Draw(batch, position, scale, Color.White);
+        }
+
+        public void Draw(SpriteBatch batch, Vector2 position, Vector2 scale, Color color)
         {
             Rectangle destination = new Rectangle();
             destination.X = (int)position.X;
@@ -50,7 +60,7 @@ namespace LibGDX_Port
                 effect = SpriteEffects.FlipHorizontally;
             if (flipY)
                 effect = effect | SpriteEffects.FlipVertically;
-            batch.Draw(source, destination, region, Color.White, 0, new Vector2(0, 0), effect, 0);
+            batch.Draw(source, destination, region, color, 0, new Vector2(0, 0), effect, 0);
         }
 
         public TextureRegion[][] Split(int width, int height)

@@ -1,29 +1,28 @@
 ﻿ART:
 ?Add detail to horsemen
 ?Create enemy death animations
--Animate closing cutscene
-	-Draw ship leaving
 -Create level transitions
 	-Famine to War
 	-War to Pestilence
 	-Pestilence to Death
+	-Death to reduxes
+-Create redux tilesets
 
 PROGRAMMING:
 ?Implement death animations
 ?Implement particle system
 -Add volume controls to main menu
--Have escape open main menu (with continue instead of play)
--Create redux bosses
--Create opening cutscene
 -Create level transition code
+?Turn enemies red on hit
 
 DESIGN:
 ?Penalty to walking under birds?
 
-SFX: ALPHA COMPLETE
+SFX: 
 ?Create death sound
 ?Create level complete sound
-?Create hit sound
+?Create enemy hit sound
+?Create player hit sound
 
 Music:
 ACTUALLY DONE THIS TIME
@@ -114,3 +113,12 @@ Implement powerups
 -Draw planet
 -Draw ship
 -Animate opening cutscene
+-Have escape open main menu (with continue instead of play)
+-Create opening cutscene
+-Create closing cutscene
+-Animate closing cutscene
+	-Draw ship leaving
+-Nerf triple shots
+-Give Famine more paths
+-Create redux bosses
+?Turn player red on hit
