@@ -148,3 +148,5 @@ J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\ship.xnb
 J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\planet.xnb
 D:\Spacemageddon\Spacemageddon\obj\x86\Debug\Spacemageddon.exe
 D:\Spacemageddon\Spacemageddon\obj\x86\Debug\Spacemageddon.pdb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\reduxBackground.xnb
+J:\Spacemageddon\Spacemageddon\bin\Windows\Debug\Content\reduxTileset.xnb

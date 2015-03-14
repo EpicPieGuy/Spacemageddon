@@ -1,4 +1,4 @@
-﻿ART:
+﻿ART: Alpha complete
 ?Add detail to horsemen
 ?Create enemy death animations
 
@@ -10,7 +10,6 @@ PROGRAMMING: Alpha complete
 
 DESIGN: 
 ?Penalty to walking under birds?
--Create redux stages
 
 SFX: Alpha complete
 ?Create death sound
@@ -118,3 +117,5 @@ Implement powerups
 ?Turn enemies red on hit
 -Create redux tilesets
 -Create redux background
+-Create redux stages
+-Fix the redux tileset

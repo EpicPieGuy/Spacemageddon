@@ -904,7 +904,7 @@ namespace Spacemageddon
                                 break;
 					    }
 				    }
-                switch (levelname.Replace("Redux", "Fight"))
+               switch (levelname.Replace("Redux", "Fight"))
                 {
                     case "deathStage":
                     case "deathFight":
@@ -950,6 +950,11 @@ namespace Spacemageddon
                         boss.setType(Boss.Type.Pestilence);
                         backgroundMusic = loadSound("bossfight.mp3");
                         break;
+                }
+                if(levelname.Contains("Redux"))
+                {
+                    tileset = new Tileset(walls, loadTexture("reduxTileset.png"));
+                    background = loadTexture("reduxBackground.png");
                 }
                 backgroundMusic.IsLooped = true;
                 backgroundMusic.Volume = musicVolume;
