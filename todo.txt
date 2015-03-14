@@ -1,30 +1,23 @@
 ﻿ART:
 ?Add detail to horsemen
 ?Create enemy death animations
--Create level transitions
-	-Famine to War
-	-War to Pestilence
-	-Pestilence to Death
-	-Death to reduxes
--Create redux tilesets
 
-PROGRAMMING:
+PROGRAMMING: Alpha complete
 ?Implement death animations
 ?Implement particle system
--Add volume controls to main menu
--Create level transition code
-?Turn enemies red on hit
+?Add volume controls to main menu
+?Switch end of level to reverse spawn
 
-DESIGN:
+DESIGN: 
 ?Penalty to walking under birds?
+-Create redux stages
 
-SFX: 
+SFX: Alpha complete
 ?Create death sound
-?Create level complete sound
 ?Create enemy hit sound
 ?Create player hit sound
 
-Music:
+Music: Alpha complete
 ACTUALLY DONE THIS TIME
 
 COMPLETE:
@@ -122,3 +115,6 @@ Implement powerups
 -Give Famine more paths
 -Create redux bosses
 ?Turn player red on hit
+?Turn enemies red on hit
+-Create redux tilesets
+-Create redux background

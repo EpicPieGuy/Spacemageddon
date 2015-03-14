@@ -248,6 +248,7 @@ namespace Spacemageddon
                 }
                 if ((bullet = enemy.checkBullets(this.bullets)) != null)
                 {
+                    enemy.Flashing = 20;
                     enemy.Health -= player.getDamage();
                     if (player.abilities[Player.Abilities.Staff])
                         enemy.poisoned = true;
@@ -726,7 +727,8 @@ namespace Spacemageddon
 		    foreach(Enemy enemy in this.enemies)
                 if (camera.Intersects(enemy.getBounds()))
                 {
-                    enemy.getTex().Draw(batch, new Vector2(enemy.X - camera.X, HEIGHT - TILE * 2 - enemy.Y - camera.Y), scale);
+                    enemy.Flashing--;
+                    enemy.getTex().Draw(batch, new Vector2(enemy.X - camera.X, HEIGHT - TILE * 2 - enemy.Y - camera.Y), scale, (enemy.Flashing > 0) ? Color.Red : Color.White);
                     shapeRenderer.rect(batch, new Rectangle((int)enemy.X - camera.X, HEIGHT - TILE * 2 - (int)enemy.Y - camera.Y - 2, (int)enemy.Health * 6, 2), Color.Red);
                 }
             foreach (Powerup powerup in this.powerups)

@@ -326,8 +326,8 @@ namespace Entities
 		    if(this.invincibility <= 0)
 		    {
                 this.Health -= amt;
-			    this.invincibility = 90;
-                this.Flashing = 90;
+			    this.invincibility = 60;
+                this.Flashing = invincibility;
 		    }
 	    }
 
