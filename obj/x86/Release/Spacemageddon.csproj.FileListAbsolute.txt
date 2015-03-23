@@ -76,3 +76,7 @@ J:\Spacemageddon\Spacemageddon\bin\Windows\Release\SharpDX.Direct3D9.xml
 J:\Spacemageddon\Spacemageddon\obj\x86\Release\Spacemageddon.exe
 J:\Spacemageddon\Spacemageddon\obj\x86\Release\Spacemageddon.pdb
 J:\Spacemageddon\Spacemageddon\obj\x86\Release\Spacemageddon.csprojResolveAssemblyReference.cache
+J:\Spacemageddon\Spacemageddon\bin\Windows\Release\Spacemageddon.exe.manifest
+J:\Spacemageddon\Spacemageddon\bin\Windows\Release\Spacemageddon.application
+J:\Spacemageddon\Spacemageddon\obj\x86\Release\Spacemageddon.exe.manifest
+J:\Spacemageddon\Spacemageddon\obj\x86\Release\Spacemageddon.application
