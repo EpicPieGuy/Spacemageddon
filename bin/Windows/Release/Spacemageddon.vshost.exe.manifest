@@ -194,7 +194,7 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-        <dsig:DigestValue>RE4RrqG4o72ZO75ZGugD56JlDsU=</dsig:DigestValue>
+        <dsig:DigestValue>pQcoDbG1I7NUwPQKR1MZgrsCn4Y=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -216,13 +216,13 @@
       <dsig:DigestValue>CKu4RjoRbTqI3EW8P3mrH1alDbA=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="todo.txt" size="3148">
+  <file name="todo.txt" size="3163">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-      <dsig:DigestValue>RmgEO8grD9rn2xgoJQ+3D/nKCl8=</dsig:DigestValue>
+      <dsig:DigestValue>jj+q8TmPTv7ngPMVCnk8hOwdIZo=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>

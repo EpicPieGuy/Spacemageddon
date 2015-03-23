@@ -7,7 +7,6 @@ PROGRAMMING: Alpha complete
 ?Implement particle system
 ?Add volume controls to main menu
 ?Switch end of level to reverse spawn
--Fix door bug
 
 DESIGN: 
 ?Penalty to walking under birds?
@@ -121,3 +120,4 @@ Implement powerups
 -Create redux stages
 -Fix the redux tileset
 -Create game icon
+-Fix door bug

@@ -560,6 +560,8 @@ namespace Spacemageddon
                         this.good = new Upgrade(boss.getType(), true);
                         this.bad = new Upgrade(boss.getType(), false);
                     }
+                    else
+                        this.door = new Door(WIDTH - TILE * 2, TILE);
                     this.boss = null;
                 }
 		    }
